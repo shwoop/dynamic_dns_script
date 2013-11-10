@@ -99,7 +99,7 @@ def main():
 
         if true_ip == dns_ip:
             if dt > dns_next_poll:
-                new_ip = fetch_dns_ip(API_URl)
+                new_ip = fetch_dns_ip(API_URL)
                 dns_ip = new_ip if new_ip else dns_ip
                 dns_next_poll = dt + POLL_INTERVAL
             print 'STILL: %s: %s' % (true_ip, dts)

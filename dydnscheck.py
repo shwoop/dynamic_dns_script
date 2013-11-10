@@ -13,8 +13,9 @@ WTFPL licensed (http://www.wtfpl.net/txt/copying/)
 import sys, time, urllib, urllib2, datetime
 
 api_qry = {'domain' : 'bummedinthegob.co.uk',
-    'password' : None,
-    'command' : 'LIST'}
+            'password' : None,
+            'command' : 'LIST'}
+
 
 def url_request(values, url):
     ''' return array from url request passing dict of parameters. '''
@@ -58,11 +59,13 @@ def fetch_dns_ip(url):
                   output if x.startswith('hame')][0]
     return output
 
+
 def update_dns_record(command, url):
     l_qry = api_qry
     l_qry['command'] = command
     output = url_request(l_qry, url)
     return output
+
 
 def main():
     ''' pull current DNS, fetch external ip, and update when required. '''
@@ -101,7 +104,7 @@ def main():
             if dt > dns_next_poll:
                 new_ip = fetch_dns_ip(API_URL)
                 dns_ip = new_ip if new_ip else dns_ip
-                dns_next_poll = dt + POLL_INTERVAL
+                dns_next_poll = dt + DNS_INTERVAL
             print 'STILL: %s: %s' % (true_ip, dts)
 
         else:
@@ -110,7 +113,7 @@ def main():
             time.sleep(10)
             new_ip = fetch_dns_ip(API_URL)
             dns_ip = new_ip if new_ip else dns_ip
-            dns_next_poll = dt + POLL_INTERVAL
+            dns_next_poll = dt + DNS_INTERVAL
             print 'NOW: %s: %s' % (true_ip, dts)
 
         time.sleep(POLL_INTERVAL)

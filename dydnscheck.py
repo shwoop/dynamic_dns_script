@@ -28,6 +28,12 @@ def fetch_dns_ip(values, api_url):
         response = urllib2.urlopen(req)
         output = [x.split()[3] for x in
                   response if x.startswith('hame')][0]
+    except urllib2.HTTPError as e:
+        print '%s : %s' % (e.code, e.reason)
+        output = None
+    except urllib2.URLError as e:
+        print 'URLError : %s' % (e.reason)
+        output = None
     except:
         output = None
     return output
@@ -65,9 +71,9 @@ def main():
             if dt > dns_next_poll:
                 dns_ip = fetch_dns_ip(values, api_url)
                 dns_next_poll = dt + dns_poll_interval
-            print 'STILL: {0}: {1}'.format(true_ip, dts)
+            print 'STILL: %s: %s' % (true_ip, dts)
         else:
-            values['command'] = api_replace_t.format(true_ip)
+            values['command'] = api_replace_t % (true_ip)
             data = urllib.urlencode(values)
             req = urllib2.Request(api_url, data)
             response = urllib2.urlopen(req)
@@ -77,7 +83,7 @@ def main():
             dns_ip = fetch_dns_ip(values, api_url)
             dns_next_poll = dt + dns_poll_interval
 
-            print 'NOW: {0}: {1}'.format(true_ip, dts)
+            print 'NOW: %s: %s' % (true_ip, dts)
 
         time.sleep(time_out)
 

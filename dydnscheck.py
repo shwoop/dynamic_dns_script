@@ -1,20 +1,18 @@
 #!/usr/bin/python
 # vim: set fileencoding=utf-8 :
 '''
-
 Dynamic DNS hack to keep home up to scratch.
 
 A. Ferguson 09-11-2013
 
 WTFPL licensed (http://www.wtfpl.net/txt/copying/)
-
 '''
 
-import sys, time, urllib, urllib2, datetime
+import sys, time, urllib, urllib2, datetime, socket
 
 api_qry = {'domain' : 'bummedinthegob.co.uk',
-            'password' : None,
-            'command' : 'LIST'}
+           'password' : None,
+           'command' : 'LIST'}
 
 
 def url_request(values, url):
@@ -29,13 +27,12 @@ def url_request(values, url):
         output = [x for x in output]
     except urllib2.HTTPError as e:
         print '%s : %s' % (e.code, e.reason)
-        output = None
     except urllib2.URLError as e:
         print 'URLError : %s' % (e.reason)
-        output = None
     except:
         print 'Unhandled Exception'
-        output = None
+    
+    output = output if output else None
     return output
 
 
@@ -52,6 +49,13 @@ def fetch_external_ip():
 
 
 def fetch_dns_ip(url):
+    ''' grab ip from dns record of hame subdomain. '''
+    ipadd = socket.gethostbyname('hame.bummedinthegob.co.uk')
+    output = ipadd if ipadd else None
+    return output
+
+
+def fetch_dns_ip_dep(url):
     ''' grab ip from dns record of hame subdomain. '''
     output = url_request(api_qry, url)
     if output:
@@ -77,12 +81,13 @@ def main():
     ## general config
     API_URL = 'https://ctrlpanel.mythic-beasts.com/customer/primarydnsapi'
     API_REPLACE_T = 'REPLACE hame 3600 A %s'
-    POLL_INTERVAL = 300
-    DNS_INTERVAL = datetime.timedelta(hours=4)
+    POLL_INTERVAL = 300     ## 300 seconds == 5 mins
+    DNS_INTERVAL_LONG = datetime.timedelta(hours=4)
+    DNS_INTERVAL_SHRT = datetime.timedelta(minutes=1)
 
     ## init
     api_qry['password'] = sys.argv[1]
-    dns_next_poll = datetime.datetime.now() + DNS_INTERVAL
+    dns_next_poll = datetime.datetime.now() + DNS_INTERVAL_LONG
     true_ip = None
     dns_ip = None
     while not true_ip:
@@ -103,22 +108,24 @@ def main():
         if true_ip == dns_ip:
             if dt > dns_next_poll:
                 new_ip = fetch_dns_ip(API_URL)
-                dns_ip = new_ip if new_ip else dns_ip
-                dns_next_poll = dt + DNS_INTERVAL
+                if new_ip:
+                    dns_ip = new_ip
+                    interval = DNS_INTERVAL_LONG
+                else:
+                    interval = DNS_INTERVAL_SHRT
+                dns_next_poll = dt + interval
             print 'STILL: %s: %s' % (true_ip, dts)
 
         else:
+            ## update dns record, assume success but set short interval
+            ## until next check.
             resp = update_dns_record(API_REPLACE_T % (true_ip), API_URL)
-            print resp
-            time.sleep(10)
-            new_ip = fetch_dns_ip(API_URL)
-            dns_ip = new_ip if new_ip else dns_ip
-            dns_next_poll = dt + DNS_INTERVAL
+            dns_ip = true_ip
+            dns_next_poll = dt + DNS_INTERVAL_SHRT
             print 'NOW: %s: %s' % (true_ip, dts)
 
         time.sleep(POLL_INTERVAL)
 
 
 if __name__ == '__main__':
-    ''' when run directly fire off main entry point. '''
     main()

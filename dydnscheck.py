@@ -14,6 +14,7 @@ api_qry = {'domain' : 'bummedinthegob.co.uk',
            'password' : None,
            'command' : 'LIST'}
 
+ipecho_urls = ['http://echoip.com', 'http://ipecho.net/plain']
 
 def url_request(values, url):
     ''' return array from url request passing dict of parameters. '''
@@ -38,29 +39,19 @@ def url_request(values, url):
 
 def fetch_external_ip():
     ''' get WAN ip address '''
-    ## bit of hack, should compile list and loop
-    output = url_request(None, 'http://echoip.com')
-    if not output:
-        output = url_request(None, 'http://ipecho.net/plain')
-        if not output:
-            print 'can\'t find external ip'
-    output = output[0] if output else None
-    return output
+    response = None
+    cnt = 0
+    urlcnt = len(ipecho_urls)
+    while not response:
+        response = url_request(None, ipecho_urls[cnt%urlcnt])
+        cnt += 1
+    return response[0]
 
 
 def fetch_dns_ip(url):
     ''' grab ip from dns record of hame subdomain. '''
     ipadd = socket.gethostbyname('hame.bummedinthegob.co.uk')
     output = ipadd if ipadd else None
-    return output
-
-
-def fetch_dns_ip_dep(url):
-    ''' grab ip from dns record of hame subdomain. '''
-    output = url_request(api_qry, url)
-    if output:
-        output = [x.split()[3] for x in
-                  output if x.startswith('hame')][0]
     return output
 
 
@@ -117,7 +108,7 @@ def main():
             print 'STILL: %s: %s' % (true_ip, dts)
 
         else:
-            ## update dns record, assume success but set short interval
+            ## update dns record and assume success but set short interval
             ## until next check.
             resp = update_dns_record(API_REPLACE_T % (true_ip), API_URL)
             dns_ip = true_ip

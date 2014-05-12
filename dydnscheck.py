@@ -8,15 +8,17 @@ A. Ferguson 09-11-2013
 WTFPL licensed (http://www.wtfpl.net/txt/copying/)
 '''
 
+
 import sys, time, urllib, urllib2, datetime, socket
 
-api_qry = {'domain' : 'bummedinthegob.co.uk',
+
+API_QRY = {'domain' : 'bummedinthegob.co.uk',
            'password' : None,
            'command' : 'LIST'}
-
-ipecho_urls = ['http://echoip.com',
+IPECHO_URLS = ['http://echoip.com',
                 'http://ipecho.net/plain',
                 'http://www.bummedinthegob.co.uk/ip_echo']
+
 
 def url_request(values, url):
     ''' return array from url request passing dict of parameters. '''
@@ -43,9 +45,9 @@ def fetch_external_ip():
     ''' get WAN ip address '''
     response = None
     cnt = 0
-    urlcnt = len(ipecho_urls)
+    urlcnt = len(IPECHO_URLS)
     while not response:
-        response = url_request(None, ipecho_urls[cnt%urlcnt])
+        response = url_request(None, IPECHO_URLS[cnt%urlcnt])
         cnt += 1
     return response[0]
 
@@ -58,7 +60,7 @@ def fetch_dns_ip(url):
 
 
 def update_dns_record(command, url):
-    l_qry = api_qry
+    l_qry = API_QRY
     l_qry['command'] = command
     output = url_request(l_qry, url)
     return output
@@ -74,12 +76,13 @@ def main():
     ## general config
     API_URL = 'https://ctrlpanel.mythic-beasts.com/customer/primarydnsapi'
     API_REPLACE_T = 'REPLACE hame 3600 A %s'
-    POLL_INTERVAL = 300     ## 300 seconds == 5 mins
+    ## 300 seconds == 5 mins
+    POLL_INTERVAL = 300
     DNS_INTERVAL_LONG = datetime.timedelta(hours=4)
     DNS_INTERVAL_SHRT = datetime.timedelta(minutes=1)
 
     ## init
-    api_qry['password'] = sys.argv[1]
+    API_QRY['password'] = sys.argv[1]
     dns_next_poll = datetime.datetime.now() + DNS_INTERVAL_LONG
     true_ip = None
     dns_ip = None

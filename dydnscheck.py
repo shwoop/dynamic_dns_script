@@ -14,7 +14,9 @@ api_qry = {'domain' : 'bummedinthegob.co.uk',
            'password' : None,
            'command' : 'LIST'}
 
-ipecho_urls = ['http://echoip.com', 'http://ipecho.net/plain']
+ipecho_urls = ['http://echoip.com',
+                'http://ipecho.net/plain',
+                'http://www.bummedinthegob.co.uk/ip_echo']
 
 def url_request(values, url):
     ''' return array from url request passing dict of parameters. '''
